@@ -1,4 +1,5 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import "../styles/SignUpPage.scss";
 
 const SignUpPage = () => {
@@ -22,10 +23,41 @@ const SignUpPage = () => {
 
   console.log(formData);
 
+  const [passwordMatch, setPasswordMatch] = useState(true)
+
+  useEffect(() => {
+    setPasswordMatch(formData.password === formData.confirmPassword || formData.confirmPassword === "")
+  })
+
+  const navigate = useNavigate()
+
+  const handleSubmit = async (e) => {
+    e.preventDefault()
+
+    
+
+    try {
+      const register_form = new FormData()
+      for(var key in formData){
+        register_form.append(key, formData[key])
+      }
+
+      const response = await fetch("http://localhost:3001/auth/signup", {
+        method: "POST",
+        body: register_form
+      })
+      if(response.ok){
+        navigate("/login")
+      }
+    } catch (err) {
+      console.log("Registration failed", err.message)
+    }
+  }
+
   return (
     <div className="signup">
       <div className="signup_content">
-        <form className="signup_content_form">
+        <form className="signup_content_form" onSubmit={handleSubmit}>
           <input
             placeholder="First Name"
             name="firstName"
@@ -64,6 +96,9 @@ const SignUpPage = () => {
             onChange={handleChange}
             required
           />
+          {!passwordMatch && (
+            <p style={ {color: "red",  fontFamily: "nunito"} }>Passwords do not match</p>
+          )}
           <input
             id="image"
             type="file"
@@ -75,7 +110,7 @@ const SignUpPage = () => {
           />
           <label htmlFor="image">
             <img src="/assets/addImage.png" alt="add profile pic" />
-            <p style={{ fontFamily: "nunito" }}>Upload your profile photo</p>
+            <p>Upload your profile photo</p>
           </label>
 
           {formData.profileImage && (
@@ -84,9 +119,9 @@ const SignUpPage = () => {
             style={{maxWidth:"80px"}}
             />
           )}
-          <button type="submit">SIGN UP</button>
+          <button type="submit" disabled={!passwordMatch}>SIGN UP</button>
         </form>
-        <a href="/login" style={{ fontFamily: "nunito" }}>
+        <a href="/login">
           Already have an account? Log in by clicking here
         </a>
       </div>
